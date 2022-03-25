@@ -1,9 +1,10 @@
 from http import client
 from re import L
-from flask import g, request
+from flask import g, redirect, request
 from wsgiref.util import request_uri
 from flask import Flask, render_template
 from flask_pymongo import PyMongo
+import os
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/practice1"
@@ -45,4 +46,23 @@ def signup():
     else:
         return render_template("signup.html")
 
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if request.method == "GET":
+        return render_template('upload.html')
+    else:
+        if 'image' not in request.files:
+            flash('No file')
+            return redirect(request.url)
+
+        file = request.files['image']
+
+        if not file or file.filename == '':
+            flash('No selected file')
+            return redirect(request.url)
+
+        app.config['UPLOAD_FOLDER'] = 'Upload'
+
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+        return redirect(request.url)
 app.run(host="localhost", port=5000, debug=True)
